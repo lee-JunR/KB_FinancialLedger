@@ -36,6 +36,7 @@ onMounted(() => {
 
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
     .div-11 {
     align-self: end;
     display: flex;
@@ -49,10 +50,10 @@ onMounted(() => {
     }
   }
   .div-12 {
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
   }
   .div-13 {
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
   }
   .div-14 {
     display: flex;
@@ -64,10 +65,10 @@ onMounted(() => {
     }
   }
   .div-15 {
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
     flex-grow: 1;
   }
   .div-16 {
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
   }
 </style>
