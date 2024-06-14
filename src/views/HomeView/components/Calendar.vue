@@ -130,25 +130,38 @@ watch(
 
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
 .error-message {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white; /* 배경색 설정 */
-    padding: 20px; /* 내부 여백 설정 */
-    border: 1px solid #FF0000; /* 테두리 설정 */
-    border-radius: 10px; /* 라운드 처리 */
-    z-index: 1000; /* 다른 요소 위에 위치하도록 설정 */
-    font-size: 1.2rem; /* 폰트 크기 설정 */
-    color: #FF0000; /* 글자 색상 설정 */
-    text-align: center; /* 텍스트 가운데 정렬 */
-    width: 80%; /* 너비 설정 */
-    max-width: 400px; /* 최대 너비 설정 */
+    background-color: white;
+    /* 배경색 설정 */
+    padding: 20px;
+    /* 내부 여백 설정 */
+    border: 1px solid #FF0000;
+    /* 테두리 설정 */
+    border-radius: 10px;
+    /* 라운드 처리 */
+    z-index: 1000;
+    /* 다른 요소 위에 위치하도록 설정 */
+    font-size: 1.2rem;
+    /* 폰트 크기 설정 */
+    color: #FF0000;
+    /* 글자 색상 설정 */
+    text-align: center;
+    /* 텍스트 가운데 정렬 */
+    width: 80%;
+    /* 너비 설정 */
+    max-width: 400px;
+    /* 최대 너비 설정 */
 }
 
 .fc {
     background-color: #F8F8F8;
+    font-family: 'Jua', sans-serif;
     border-radius: 10px;
     /* 꼭지점을 라운드 처리 */
     margin: 20px;
@@ -172,17 +185,17 @@ watch(
 
 .summary-income {
     color: #6293ce;
-    font-family: 'Inter', sans-serif;
+    font-family: 'JUA', sans-serif;
 }
 
 .summary-expense {
     color: #f66464;
-    font-family: 'Inter', sans-serif;
+    font-family: 'JUA', sans-serif;
 }
 
 .summary-total {
     color: #434343;
-    font-family: 'Inter', sans-serif;
+    font-family: 'JUA', sans-serif;
 }
 
 @media (max-width: 991px) {
