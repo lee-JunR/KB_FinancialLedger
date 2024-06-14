@@ -137,6 +137,8 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
 .div {
   position: fixed;
   bottom: 20px;
@@ -147,7 +149,7 @@ export default {
   flex-direction: column;
   font-size: 12px;
   z-index: 1000;
-
+  font-family: JUA, sans-serif;
 }
 
 .close-button {
@@ -155,7 +157,7 @@ export default {
   top: 10px;
   right: 10px;
   cursor: pointer;
-  /* 다른 스타일 */
+  font-family: JUA, sans-serif;
 }
 
 @media (max-width: 991px) {
@@ -265,7 +267,7 @@ label {
 }
 
 .input {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
 }
 
 .unitText {
@@ -290,7 +292,7 @@ label {
 }
 
 .div-16 {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
   margin-top: 31px;
 }
 
@@ -318,13 +320,13 @@ label {
 
 .div-18 {
   color: #434343;
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
   font-weight: 700;
 }
 
 .div-19,
 .div-20 {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
 }
 
 .div-21 {
@@ -370,6 +372,7 @@ label {
   font: 500 10px/150% Inter, sans-serif;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-family: JUA, sans-serif;
 }
 
 .confirm-button:hover,
