@@ -3,7 +3,7 @@
       <div class="div-2">
         <div class="div-3">
             <div class="div-4">
-                <div class="div-5">전체 내역 {{ data.totalCnt }}건</div>
+                <div class="div-5">전체 내역 {{ expenseList.data.totalCnt }}건</div>
             </div>
             
             <div class="div-7">
@@ -12,25 +12,25 @@
                 </div>
             </div>
         </div>
-            <div>
+            <div class="list">
                 <ul>
-                    <li class="list-item-day" v-for="item_day in data.groupedList">
-                        <div style="justify-content: space-between; display: flex;">
+                    <li class="list-item-day" v-for="item_day in expenseList.data.groupedList">
+                        <div class="item-sub">
                             <div class="date">
-                                {{ parseInt(item_day[0].date.split("-")[1]) + "월 " + parseInt(item_day[0].date.split("-")[1]) + "일"}}
+                                {{ parseInt(item_day[0].date.split("-")[1]) + "월 " + parseInt(item_day[0].date.split("-")[2]) + "일"}}
                             </div>
-                            <ExpenseListItemAmount :data="item_day"/>
+                              <ExpenseListItemAmount :data="item_day"/>
                         </div> 
                         <li class="list-item-day-detail" v-for="item_detail in item_day">
                             <div class="div-17">
                                 <div class="div-18">
                                     <div class="div-19">
-                                        <div class="div-20">{{ item_detail.category }}</div>
-                                            <div style="display: flex;">
+                                        <div :class="categoryClass(item_detail.category)">{{ item_detail.category }}</div>
+                                            <div class="div-22">
                                                 <div class="div-21">{{ item_detail.memo }}</div>
-                                                <div class="div-21">{{ item_detail.payment }}</div>
+                                                <div class="payment">{{ item_detail.payment }}</div>
                                             </div>
-                                        <div class="div-22">{{ (item_detail.class === "지출") ? "- " : "+ "}}  {{ item_detail.amount.toLocaleString('ko-KR') }}원</div>
+                                        <div :class="(item_detail.class === '지출') ? 'amount-expense' : 'amount-income' ">{{ (item_detail.class === "지출") ? "- " : "+ "}}  {{ item_detail.amount.toLocaleString('ko-kr') }}원</div>
                                     </div>
                                 </div>
                             </div>
@@ -44,101 +44,37 @@
 </template>
   
   <script setup>
-    import { reactive, onMounted, onUpdated } from 'vue';
+    import { ref, reactive, onMounted, watch, computed } from 'vue';
     import TotalAmount from '@/components/TotalAmount.vue';
     import axios from 'axios';
     import ExpenseListItemAmount from './ExpenseListItemAmount.vue';
-    const data = reactive({list : "", totalCnt : "", groupedList : ""});
+    import { useFilterStore } from "@/stores/filter"; //filter 선택한 조건 
+    import { useExpenseListStore } from '@/stores/expenseList';
+    const filter = useFilterStore(); //reactive 로 변환
+    const expenseList = useExpenseListStore();
 
+    const data = reactive({list : [], totalCnt : "", groupedList : ""});
     const userId = sessionStorage.getItem("id");
+    
 
-    const props = defineProps({
-        search : {
-            type : Object,
-            required : true
-        }
-    });
-
-    const updateAccount = (list) => {
-        let income = 0;
-        let expense = 0;
-        let profit = 0; 
-        list.forEach(e => {
-            if (e.class === "지출") {
-            income += e.amount;
-            } else {
-            expense += e.amount;
-            }
-        });
-
-        profit = income - expense;
-
-        const accountData = {
-            total_income: income,
-            total_expand: expense,
-            profit: profit
-        };
-        
-        axios.put(`http://localhost:3001/account/${userId}`, accountData)
-            .then(res => {
-            console.log(res.data);
-            })
-            .catch(e => {
-            console.log(e);
-            });
-        };
-    const groupByDate = (list) => {
-        return list.reduce((acc, item) => {
-            const date = item.date;
-            if (!acc[date]) {
-            acc[date] = [];
-            }
-            acc[date].push(item);
-            return acc;
-        }, {});
+    const categoryClass = (category) => {
+      if (category === '식비') {
+        return 'div-20 category_food';
+      } else if (category === '생활') {
+        return 'div-20 category_life';
+      } else if (category === '교통') {
+        return 'div-20 category_traffic';
+      } else if (category === '쇼핑/뷰티') {
+        return 'div-20 category_shopping';
+      } 
+       else {
+        return 'div-20';
+      }
     };
 
-
-
-    const getList = async() => { 
-        await axios.get(`http://localhost:3001/transactionDetail?user_id=${userId}`)
-        .then(res => {
-            data.list = res.data;
-
-            data.groupedList = groupByDate(data.list);
-
-            console.log(data.groupedList);
-            data.totalCnt = res.data.length;
-
-            updateAccount(data.list);
-            
-            // const filteredList = data.groupedList.filter(item => {
-            //     const dateCondition = search.date.year === "" || item[0].date.year === search.date.year &&
-            //               search.date.month === "" || item[0].date.month === search.date.month &&
-            //               search.date.date === "" || item[0].date.date === search.date.date;
-            //     const classCondition = search.class === "" || item[0].class === search.class;
-            //     const categoryCondition = search.category === "" || item[0].category === search.category;
-            //     const paymentCondition = search.payment === "" || item[0].payment === search.payment;
-
-            //     return dateCondition && classCondition && categoryCondition && paymentCondition;
-
-            // })
-
-
-
-        })
-        .catch(e => {
-            console.log(e);
-            alert("오류");
-        });
-    }
-
-    onMounted(() => {
-        getList();
-    })
-    onUpdated(() => {
-        console.log(props.search);
-    })
+    onMounted(()=> expenseList.getList());
+    // props 변경 사항 추적하여 적용
+    watch(() => filter.search, expenseList.filterList, { deep: true });
 
   </script>
 
@@ -146,9 +82,10 @@
   
   
   <style scoped>
-
+  @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
   .list-item-day {
     list-style: none;
+    margin-bottom: 7%;
   }  
   @media (max-width: 991px) {
     .list-item-day {
@@ -162,10 +99,28 @@
   @media (max-width: 991px) {
     .list-item-day-detail {
       max-width: 100%;
+      width: 100%;
     }
   }
-
-
+  .item-sub{
+    display: flex;
+    justify-content: space-between;
+  }
+  @media (max-width: 991px) {
+    .item-sub {
+      max-width: 100%;
+      display: grid;
+    }
+  }
+  .list{
+    margin-top: 1%;
+    font-size: larger;
+  }
+  @media (max-width: 991px){
+    .list{
+      vertical-align: middle;
+    }
+  }
 
   .div {
     display: flex;
@@ -173,7 +128,10 @@
     flex-direction: column;
     z-index: auto;
     position: relative;
+    font-family: JUA, sans-serif;
   }
+
+
   .div-2 {
     align-self: center;
     display: flex;
@@ -181,12 +139,18 @@
     width: 100%;
     max-width: 1064px;
     flex-direction: column;
+    font-family: JUA, sans-serif;
+    
   }
   @media (max-width: 991px) {
     .div-2 {
       max-width: 100%;
+      align-self: center;
+      width: 100%;
+      flex-direction: column;
     }
   }
+  
   .div-3 {
     display: flex;
     margin-top: 60px;
@@ -200,6 +164,8 @@
       flex-wrap: wrap;
       padding-right: 20px;
       margin-top: 40px;
+      width: 95%;
+      display: grid;
     }
   }
   .div-4 {
@@ -207,12 +173,18 @@
     flex-direction: column;
     color: #434343;
   }
+  @media (max-width: 991px) {
+    .div-4 {
+      margin-left: 8%;
+      max-width: 100%;
+      width: 100%;
+    }
+  }
   .div-5 {
-    font: xx-large Inter, sans-serif;
+    font: xx-large JUA, sans-serif;
   }
   .date {
-    margin-top: 23px;
-    font: large 500;
+    font: larger JUA, sans-serif;
   }
   .div-7 {
     align-self: start;
@@ -223,26 +195,20 @@
   @media (max-width: 991px) {
     .div-7 {
       white-space: initial;
+      max-width: 100%;
+      width: 100%;
     }
   }
   .div-8 {
-    display: flex;
     gap: 9px;
-    font-size: 11px;
   }
   @media (max-width: 991px) {
     .div-8 {
       white-space: initial;
+      margin-left: 5%;
+      max-width: 100%;
+      width: 100%;
     }
-  }
-  .div-9 {
-    color: #6293ce;
-    font-family: Inter, sans-serif;
-    flex-grow: 1;
-  }
-  .div-10 {
-    color: #f66464;
-    font-family: Inter, sans-serif;
   }
   
   .div-17 {
@@ -255,7 +221,8 @@
   }
   @media (max-width: 991px) {
     .div-17 {
-      max-width: 100%;
+      max-width: 85%;
+      margin-right: 10%;
     }
   }
   .div-18 {
@@ -264,7 +231,7 @@
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     display: flex;
     width: 100%;
-    gap: 20px;
+    gap: 10%;
     white-space: nowrap;
     padding: 19px 11px;
     justify-content: space-between;
@@ -272,48 +239,208 @@
   @media (max-width: 991px) {
     .div-18 {
       max-width: 100%;
+      padding: 10px 10px;
       flex-wrap: wrap;
       white-space: initial;
+      justify-content: center;
+      
     }
   }
   .div-19 {
-    justify-content: start;
+    justify-content: space-between;
     margin-left: 5%;
+    margin-right: 5%;
     display: flex;
-    gap: 10%;
+    width: 100%;
+    font-family: JUA, sans-serif;
   }
   @media (max-width: 991px) {
     .div-19 {
       white-space: initial;
+      width: 80%;
+      gap:10%;
     }
   }
+
   .div-20 {
+    border-radius: 11px;
+    background-color: #ffd99f;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    padding: 6px 26px;
+    font: medium JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .div-20 {
+      font: small Inter, sans-serif;
+      width: 100px;
+      padding: 1% 2%;
+
+    }
+  }
+
+
+
+  .category_traffic {
+    border-radius: 11px;
+    background-color: #99ff89;
+    text-align: center;
+    justify-content: center;
+    padding: 6px 26px;
+    font: medium JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .category_traffic {
+      padding: 1% 2%;
+      font: small Inter, sans-serif;
+    }
+  }
+  .category_shopping {
+    border-radius: 11px;
+    background-color: #f9f59e;
+    text-align: center;
+    justify-content: center;
+    padding: 6px 26px;
+    font: medium JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .category_shopping {
+      white-space: initial;
+      padding: 1% 2%;
+      font: small Inter, sans-serif;
+    }
+  }
+
+  .category_life {
     border-radius: 11px;
     background-color: #9fd7ff;
     text-align: center;
     justify-content: center;
     padding: 6px 26px;
-    font: medium Inter, sans-serif;
+    font: medium JUA, sans-serif;
   }
   @media (max-width: 991px) {
-    .div-20 {
+    .category_life {
       white-space: initial;
-      padding: 0 20px;
+      padding: 1% 2%;
+      font: small Inter, sans-serif;
     }
   }
+
+  .category_food {
+    border-radius: 11px;
+    background-color: #ffade3;
+    text-align: center;
+    justify-content: center;
+    padding: 6px 26px;
+    font: medium JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .category_food {
+      white-space: initial;
+      padding: 1% 2%;
+      font: small Inter, sans-serif;
+    }
+  }
+  .payment{
+    margin: auto 0 0 10%;
+    font: medium Inter, sans-serif;
+    width: 100%;
+    display: flex;
+    justify-content: end;
+    font-family: JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .payment {
+      max-width: 100%;
+      width: 100%;
+      font: x-small Inter, sans-serif;
+      font-weight: 600;
+      margin-right: 0%;
+      overflow: hidden;
+      height: 25px;
+    }
+  }
+
   .div-21 {
     margin: auto 0 0 10%;
     font: medium Inter, sans-serif;
+    width: 100%;
+    display: end;
+    font-family: JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .div-21 {
+      max-width: 100%;
+      width: 100%;
+      font: xx-small Inter, sans-serif;
+      font-weight: 900;
+      margin-right: 0%;
+      overflow: hidden;
+      height: 25px;
+    }
   }
 
   .div-22 {
-    flex-grow: 1;
-    margin: auto 0 0 10%;
+    margin: auto;
     font: medium Inter, sans-serif;
+    display: flex;
+    font-weight: 900;
+    color: #434343;
+    width: 50%;
+    justify-content: end;
   }
   @media (max-width: 991px) {
     .div-22 {
       max-width: 100%;
+      width: 100%;
+      justify-content: end;
+      gap: 30%;
+      font: small Inter, sans-serif;
+      font-weight: 700;
+      color: #434343;
+    }
+  }
+  .amount-income {
+    margin: auto;
+    font: medium Inter, sans-serif;
+    display: flex;
+    font-weight: 900;
+    color: #6293CE;
+    width: 50%;
+    justify-content: end;
+    font-family: JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .amount-income {
+      max-width: 100%;
+      width: 100%;
+      justify-content: end;
+      gap: 30%;
+      font: small Inter, sans-serif;
+      font-weight: 700;
+    }
+  }
+
+  .amount-expense {
+    margin: auto;
+    font: medium Inter, sans-serif;
+    display: flex;
+    font-weight: 900;
+    color: #F66464;
+    width: 50%;
+    justify-content: end;
+    font-family: JUA, sans-serif;
+  }
+  @media (max-width: 991px) {
+    .amount-expense {
+      max-width: 100%;
+      width: 100%;
+      justify-content: end;
+      gap: 30%;
+      font: small Inter, sans-serif;
+      font-weight: 700;
     }
   }
   .div-23 {

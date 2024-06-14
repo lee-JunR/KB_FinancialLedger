@@ -1,74 +1,95 @@
 <template>
   <nav class="navbar">
-    <div class="logosection">
-      <RouterLink :to="{ name: 'home' }"><img loading="lazy" src='@/assets/img/logo.png' class="logo-img" />
-      </RouterLink>
-    </div>
-
-    <div class="datesection">
-      <img loading="lazy" src="@/assets/img/leftArrow.png" class="nav-icon" @click="decreaseMonth" />
-      <div class="date-text">
-        <div class="month">{{ date.month }}월</div>
-        <div class="year"><span style="font-size: 25px">{{ date.year }}</span></div>
+    <div class="topSection">
+      <div class="logosection">
+        <RouterLink :to="{ name: 'home' }">
+          <img loading="lazy" src='@/assets/img/logo.png' class="logo-img" />
+        </RouterLink>
       </div>
-      <img loading="lazy" src="@/assets/img/rightArrow.png" class="nav-icon" @click="increaseMonth" />
+
+      <div class="datesection">
+        <button class="monthManageButton" @click="decreaseMonth">
+          <img loading="lazy" src="@/assets/img/leftArrow.png" class="nav-icon" />
+        </button>
+        <div class="date-text">
+          <div class="month">{{ date.month }}월</div>
+          <div class="year">{{ date.year }}</div>
+        </div>
+        <button @click="increaseMonth" class="monthManageButton">
+          <img loading="lazy" src="@/assets/img/rightArrow.png" class="nav-icon" />
+        </button>
+      </div>
     </div>
 
     <div class="bottomSection">
       <ul class="menuSection">
         <li>
-          <RouterLink :to="{ name: 'home' }"><img src="@/assets/img/calendar.png" alt="달력" class="nav-icon-menu">
+          <RouterLink :to="{ name: 'home' }">
+            <img src="@/assets/img/calendar.png" alt="달력" class="nav-icon-menu">
           </RouterLink>
         </li>
         <li>
-          <RouterLink :to="{ name: 'expenses' }"><img src="@/assets/img/list.png" alt="소비리스트" class="nav-icon-menu">
+          <RouterLink :to="{ name: 'expenses' }">
+            <img src="@/assets/img/list.png" alt="소비리스트" class="nav-icon-menu">
           </RouterLink>
         </li>
         <li>
-          <RouterLink :to="{ name: 'analysis' }"><img src="@/assets/img/analyze.png" alt="분석" class="nav-icon-menu">
+          <RouterLink :to="{ name: 'analysis' }">
+            <img src="@/assets/img/analyze.png" alt="분석" class="nav-icon-menu">
           </RouterLink>
         </li>
       </ul>
 
       <ul class="option">
-        <li><img loading="lazy" :src="themeIcon" class="nav-icon" @click="toggleTheme" /></li>
         <li>
-          <RouterLink :to="{ name: 'profile' }"><img loading="lazy" src="@/assets/img/Account_circle.png"
-              class="nav-icon" /></RouterLink>
+          <img loading="lazy" src="@/assets/img/dark.png" class="nav-icon-option" @click="toggleTheme" />
+        </li>
+        <li>
+          <RouterLink :to="{ name: 'profile' }">
+            <img loading="lazy" src="@/assets/img/Account_circle.png" class="nav-icon-option" />
+          </RouterLink>
         </li>
       </ul>
     </div>
-
   </nav>
 </template>
 
 <script setup>
 import { RouterLink } from 'vue-router';
-import { useDateStore } from '@/stores/date'
-import { ref, computed } from 'vue';
+import { useDateStore } from '@/stores/date';
+import { ref, computed, onMounted } from 'vue';
 
 const isDarkMode = ref(false);
 const date = useDateStore();
 
-const decreaseMonth = function () {
+const decreaseMonth = () => {
   console.log(date.decreaseMonth());
-}
+};
 
-const increaseMonth = function () {
+const increaseMonth = () => {
   console.log(date.increaseMonth());
-}
+};
 
-const toggleTheme = function () {
+const toggleTheme = () => {
   isDarkMode.value = !isDarkMode.value;
-  sessionStorage.setItem("theme", isDarkMode.value ? "dark" : "light");
-}
+  const theme = isDarkMode.value ? "dark" : "light";
+  sessionStorage.setItem("theme", theme);
+  document.documentElement.setAttribute('theme', theme);
+};
 
-const themeIcon = computed(() => {
-  return isDarkMode.value ? "./src/assets/img/light.png" : "./src/assets/img/dark.png";
-})
+
+onMounted(() => {
+  const storedTheme = sessionStorage.getItem('theme');
+  if (storedTheme) {
+    isDarkMode.value = storedTheme === 'dark';
+    document.documentElement.setAttribute('theme', storedTheme);
+  }
+});
 </script>
-
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+
 .navbar {
   background-color: #f7c873;
   width: 100%;
@@ -76,6 +97,7 @@ const themeIcon = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: JUA, sans-serif;
 }
 
 @media (max-width: 991px) {
@@ -83,14 +105,41 @@ const themeIcon = computed(() => {
     flex-direction: column;
     align-items: center;
     gap: 0px;
-    height: 300px;
+    height: 200px;
+    justify-content: normal;
+  }
+}
+
+.topSection {
+  display: flex;
+  width: 61%;
+  justify-content: space-between;
+}
+
+@media (max-width: 991px) {
+  .topSection {
+    flex-direction: column;
+    align-items: center;
   }
 }
 
 .logosection {
   width: 293px;
   height: 107px;
-  margin-right: 18%;
+  margin: 46px auto 19px 33px;
+}
+
+@media (max-width: 991px) {
+  .logosection {
+    margin: 0;
+    width: 200px;
+    height: 70px;
+  }
+
+  .logosection img {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .datesection {
@@ -98,29 +147,63 @@ const themeIcon = computed(() => {
   align-items: center;
 }
 
-.datesection img {
-  margin: 0 10px;
+@media (max-width: 991px) {
+  .datesection {
+    margin-bottom: 10px;
+  }
+}
+
+.datesection .nav-icon {
+  margin: 0 50px;
+  height: 15px;
+}
+
+.datesection .date-text {
+  width: 100px;
+  font-family: JUA, sans-serif;
+}
+
+.datesection .monthManageButton {
+  height: 50%;
+  border: none;
+  background-color: rgba(0, 0, 0, 0);
+  cursor: pointer;
+}
+
+.datesection .monthManageButton:hover {
+  background-color: #bc9856;
 }
 
 .month {
   color: #434343;
   font-family: Inter;
-  font-size: 40px;
-  font-style: normal;
+  font-size: 45px;
+  font-family: JUA, sans-serif;
   font-weight: 700;
   line-height: normal;
   text-align: center;
+}
+
+@media (max-width: 991px) {
+  .month {
+    font-size: 30px;
+  }
 }
 
 .year {
   color: #434343;
   font-family: Inter;
   font-size: 25px;
-  font-style: normal;
+  font-family: JUA, sans-serif;
   font-weight: 400;
   line-height: normal;
   text-align: center;
+}
 
+@media (max-width: 991px) {
+  .year {
+    font-size: 15px;
+  }
 }
 
 .bottomSection {
@@ -131,9 +214,39 @@ const themeIcon = computed(() => {
   padding-right: 10px;
 }
 
+@media (max-width: 991px) {
+  .bottomSection {
+    width: 100%;
+    justify-content: center;
+    padding-right: 0;
+  }
+}
+
 .bottomSection ul {
-  /* 왜 패딩 들어가있는지 모르겠음 */
   padding-left: 0;
+}
+
+.bottomSection li {
+  border-radius: 5px;
+}
+
+.bottomSection li:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 991px) {
+  .bottomSection ul {
+    margin: 0;
+  }
+
+  .bottomSection li {
+    height: 30px;
+  }
+
+  .bottomSection li img {
+    height: 100%;
+    width: 100%;
+  }
 }
 
 .menuSection {
@@ -146,9 +259,30 @@ const themeIcon = computed(() => {
   margin: 0 5px;
 }
 
+@media (max-width: 991px) {
+  .menuSection li:nth-child(2) {
+    height: 25px;
+    width: 30px;
+  }
+
+  .menuSection li:nth-child(3) {
+    height: 30px;
+    width: 35px;
+    margin-left: 0px;
+  }
+}
+
 .option {
   list-style: none;
   display: flex;
   align-items: center;
+  cursor: pointer;
+}
+
+@media (max-width: 991px) {
+  .option li {
+    width: 33px;
+    height: 34px;
+  }
 }
 </style>

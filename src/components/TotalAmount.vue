@@ -1,10 +1,8 @@
 <template>
-    <div>
         <div class="div-8">
-              <div class="div-9">총 수입:{{ " " + totalAmount.totalIncome.toLocaleString('ko-KR')}}원</div>|
-              <div class="div-10">총 지출:{{" " + totalAmount.totalExpense.toLocaleString('ko-KR')}}원</div>
+            <div class="div-9">총 수입:{{ " " + totalAmount.totalIncome.toLocaleString('ko-KR')}}원</div>
+            <div class="div-10">총 지출:{{" " + totalAmount.totalExpense.toLocaleString('ko-KR')}}원</div>
         </div>
-    </div>
 </template>
 
 
@@ -16,11 +14,11 @@ const totalAmount = reactive({totalIncome : "", totalExpense : ""});
 
 const userId = sessionStorage.getItem("id");
 
-const getList = () => {
-    axios.get(`http://localhost:3001/account?user_id=${userId}`)
+const getAccount= () => {
+    axios.get(`http://localhost:3001/account/${userId}`)
     .then(res => {
-        totalAmount.totalIncome = res.data[0].total_income;
-        totalAmount.totalExpense = res.data[0].total_expand;
+        totalAmount.totalIncome = res.data.total_income;
+        totalAmount.totalExpense = res.data.total_expand;
         console.log(totalAmount);
     })
     .catch(e => {
@@ -30,7 +28,7 @@ const getList = () => {
 }
 
 onMounted(() => {
-    getList();
+    getAccount();
 })
 
 
@@ -42,19 +40,22 @@ onMounted(() => {
     display: flex;
     gap: 9px;
     font-size: large;
+    font-family: JUA, sans-serif;
   }
   @media (max-width: 991px) {
     .div-8 {
-      white-space: initial;
+      margin-left: 5%;
+      width: 90%;
+      display: grid;
     }
   }
   .div-9 {
     color: #6293ce;
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
     flex-grow: 1;
   }
   .div-10 {
     color: #f66464;
-    font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
   }
 </style>

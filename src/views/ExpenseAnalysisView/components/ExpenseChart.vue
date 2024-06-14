@@ -1,23 +1,24 @@
 <template>
   <div class="div">
+
     <div class="div-3">
+
       <div class="div-4">
+
         <div class="column">
           <google-chart
-          type="PieChart"
-          :data="chartData"
-          :options="chartOptions"
-          style="width: 100%; height: 300px"
-        ></google-chart>
+            type="PieChart"
+            :data="chartData"
+            :options="chartOptions"
+          ></google-chart>
+          
         </div>
+
         <div class="column-2">
           <div class="div-5">
-            <div class="total">
-              이번달 지출 : <br />
-            </div>
-            <div class="totalValue">
-              {{ totalExpense.toLocaleString() }} 원
-            </div>
+            <div class="total">이번달 지출 : <br /></div>
+
+            <div class="totalValue">{{ totalExpense.toLocaleString() }} 원</div>
             <div class="div-7">
               <div class="div-8">
                 <div class="div-9"><div class="div-10">생활</div></div>
@@ -28,9 +29,13 @@
             <div class="div-13">
               <div class="div-14">
                 <div class="div-15"><div class="div-16">쇼핑/뷰티</div></div>
-                <div class="div-17">{{ categoryPercentages["쇼핑/뷰티"] }}%</div>
+                <div class="div-17">
+                  {{ categoryPercentages["쇼핑/뷰티"] }}%
+                </div>
               </div>
-              <div class="div-18">{{ totals["쇼핑/뷰티"].toLocaleString() }} 원</div>
+              <div class="div-18">
+                {{ totals["쇼핑/뷰티"].toLocaleString() }} 원
+              </div>
             </div>
             <div class="div-19">
               <div class="div-20">
@@ -54,10 +59,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent, ref, onMounted, watch } from "vue";
 import axios from "axios";
 import { GChart } from "vue-google-charts";
-
+import { useDateStore } from "@/stores/date";
 export default defineComponent({
   name: "Frame",
   components: {
@@ -65,6 +70,7 @@ export default defineComponent({
   },
   setup() {
     const categories = ["생활", "쇼핑/뷰티", "교통", "식비"];
+
     const chartData = ref([]);
     // Google 차트 옵션
     const chartOptions = ref({
@@ -74,21 +80,21 @@ export default defineComponent({
       pieStartAngle: 100, // 차트의 시작 각도 설정
       legend: "none", // 범례 위치 설정
       slices: {
-            0: { color: '9FD7FF' },
-            1: { color: 'F9F59E' },
-            2: { color: '99FF89' },
-            3: { color: 'FFADE3' },},
-       backgroundColor: 'transparent',
-       width:550,
-       height:550,
-       fontSize:17,
-       pieSliceBorderColor:'white',
-       pieSliceTextStyle: {
-        color: 'black', // 텍스트 색상 설정
-        fontSize: 17, // 텍스트 크기 설정
-         // 텍스트 굵게 설정
+        0: { color: "9FD7FF" },
+        1: { color: "F9F59E" },
+        2: { color: "99FF89" },
+        3: { color: "FFADE3" },
       },
-       
+      backgroundColor: "transparent",
+      fontSize: 17,
+      width:500,
+      height:500,
+      pieSliceBorderColor: "white",
+      pieSliceTextStyle: {
+        color: "black", // 텍스트 색상 설정
+        fontSize: 17, // 텍스트 크기 설정
+        // 텍스트 굵게 설정
+      },
     });
 
     const totals = ref<{ [key: string]: number }>({
@@ -97,6 +103,9 @@ export default defineComponent({
       교통: 0,
       식비: 0,
     });
+
+    let overallTotal = 0;
+
     const categoryPercentages = ref<{ [key: string]: string }>({
       생활: "0",
       "쇼핑/뷰티": "0",
@@ -104,22 +113,31 @@ export default defineComponent({
       식비: "0",
     });
     const totalExpense = ref(0);
-
+    const dateStore = useDateStore();
     const fetchData = async () => {
       try {
-
-        const response = await axios.get(
-          "http://localhost:3001/transactionDetail"
-        );
-
+        overallTotal = 0;
+        totals.value = {
+          생활: 0,
+          "쇼핑/뷰티": 0,
+          교통: 0,
+          식비: 0,
+        };
 
         const user_id = sessionStorage.getItem("id");
-        console.log(user_id)
+        const response = await axios.get(
+          `http://localhost:3001/transactionDetail?user_id=${user_id}`
+        );
 
-        const data = response.data.filter((item: any) => item.user_id === parseInt(user_id));
+        console.log(dateStore.month);
+
+        const data = response.data.filter(
+          (item: any) => (item.class === "지출") &&
+          (parseInt(item.date.split("-")[1]) === parseInt(dateStore.month))
+        );
+
+        console.log(data);
         
-        console.log(data)
-        let overallTotal = 0;
 
         data.forEach((item: any) => {
           if (categories.includes(item.category)) {
@@ -136,8 +154,8 @@ export default defineComponent({
           if (overallTotal > 0) {
             // 각 카테고리의 퍼센티지 계산
             const percentage = (
-              (totals.value[category] / overallTotal) *
-              100
+              (totals.value[category] / overallTotal) * 100
+              
             ).toFixed(1);
             // Google 차트 데이터에 추가
             chartDataArray.push([category, parseFloat(percentage)]);
@@ -155,7 +173,11 @@ export default defineComponent({
       }
     };
 
-    onMounted(fetchData);
+    onMounted(() => {
+      fetchData();
+    });
+
+    watch(() => dateStore.month, fetchData, totals)
 
     return {
       categories,
@@ -176,16 +198,8 @@ export default defineComponent({
   padding-bottom: 80px;
   flex-direction: column;
 }
-.div-2 {
-  background-color: #f7c873;
-  min-height: 172px;
-  width: 100%;
-}
-@media (max-width: 991px) {
-  .div-2 {
-    max-width: 100%;
-  }
-}
+
+
 .div-3 {
   border-radius: 20px;
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
@@ -195,11 +209,17 @@ export default defineComponent({
   margin-top: -19px;
   width: 862px;
   max-width: 100%;
-  padding: 37px 59px 79px;
+  padding: 50px 50px 50px 50px;
 }
 @media (max-width: 991px) {
   .div-3 {
-    padding: 0 20px;
+    border-radius: 20px;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+    background-color: #faebcd;
+    align-self: center;
+    z-index: 10;
+    margin-top: -19px;
+    width: 74%;
   }
 }
 .div-4 {
@@ -209,8 +229,7 @@ export default defineComponent({
 @media (max-width: 991px) {
   .div-4 {
     flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
+    align-items: center;
   }
 }
 .column {
@@ -221,34 +240,28 @@ export default defineComponent({
   margin-right: 70px;
   margin-left: -80px;
   margin-top: -30px;
+  margin-bottom: -20px;
 }
 @media (max-width: 991px) {
   .column {
-    width: 100%;
+    width: 123%;
+    margin-top:-40%;
+    align-self: center;
   }
 }
-.img {
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 100%;
-  margin-top: 94px;
-}
-@media (max-width: 991px) {
-  .img {
-    margin-top: 40px;
-  }
-}
+
 .column-2 {
   display: flex;
   flex-direction: column;
   line-height: normal;
   width: 55%;
-  margin-left: 20px;
+  margin-right: 50px;
 }
 @media (max-width: 991px) {
   .column-2 {
-    width: 100%;
+    width: 95%;
+    margin-top: -20%;
+    margin-right: 10%;
   }
 }
 .div-5 {
@@ -256,16 +269,16 @@ export default defineComponent({
   flex-direction: column;
   color: #000;
 }
+.total {
+  font: 400 20px JUA, sans-serif;
+}
 @media (max-width: 991px) {
-  .div-5 {
-    margin-top: 40px;
+  .total {
+    font: 400 20px Inter, sans-serif;
   }
 }
-.total{
-  font: 400 20px Inter, sans-serif;
-}
 .totalValue {
-  font: 400 32px Inter, sans-serif;
+  font: 400 32px JUA, sans-serif;
   margin-top: 10px;
   margin-bottom: -5px;
 }
@@ -308,7 +321,7 @@ export default defineComponent({
   }
 }
 .div-10 {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
   border-radius: 17px;
   background-color: #9fd7ff;
   justify-content: center;
@@ -323,13 +336,13 @@ export default defineComponent({
 }
 .div-11 {
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 .div-12 {
   flex-grow: 1;
   flex-basis: auto;
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 .div-13 {
   border-radius: 21px;
@@ -371,13 +384,12 @@ export default defineComponent({
   }
 }
 .div-16 {
-  font-family: Inter, sans-serif;
+    font-family: JUA, sans-serif;
   border-radius: 17px;
   background-color: #f9f59e;
   justify-content: center;
   padding: 9px 31px;
   font-weight: 500;
-  
 }
 @media (max-width: 991px) {
   .div-16 {
@@ -387,13 +399,13 @@ export default defineComponent({
 }
 .div-17 {
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 .div-18 {
   flex-grow: 1;
   flex-basis: auto;
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 .div-19 {
   border-radius: 21px;
@@ -434,7 +446,7 @@ export default defineComponent({
   }
 }
 .div-22 {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
   border-radius: 17px;
   background-color: #99ff89;
   justify-content: center;
@@ -449,13 +461,13 @@ export default defineComponent({
 }
 .div-23 {
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 .div-24 {
   flex-grow: 1;
   flex-basis: auto;
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px   JUA, sans-serif;
 }
 .div-25 {
   border-radius: 21px;
@@ -496,7 +508,7 @@ export default defineComponent({
   }
 }
 .div-28 {
-  font-family: Inter, sans-serif;
+  font-family: JUA, sans-serif;
   border-radius: 17px;
   background-color: #ffade3;
   justify-content: center;
@@ -511,12 +523,12 @@ export default defineComponent({
 }
 .div-29 {
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px  JUA, sans-serif;
 }
 .div-30 {
   flex-grow: 1;
   flex-basis: auto;
   margin: auto 0;
-  font: 300 20px Inter, sans-serif;
+  font: 300 20px JUA, sans-serif;
 }
 </style>
