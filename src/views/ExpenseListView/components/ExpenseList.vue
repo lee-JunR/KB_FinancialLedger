@@ -186,6 +186,11 @@
   
   
   <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+  .list{
+    font-family: JUA, sans-serif;
+  }
 
   .list-item-day {
     list-style: none;
